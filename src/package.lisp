@@ -7,7 +7,9 @@
 (defpackage #:cl-logging-pure
   (:use #:cl)
   (:export
-   ;; Logger definition
+   #:with-logging-pure-timing
+   #:logging-pure-batch-process
+   #:logging-pure-health-check;; Logger definition
    #:deflogger
    #:make-logger
    #:logger

@@ -6,14 +6,16 @@
 
 (asdf:defsystem #:cl-logging-pure
   :description "Pure Common Lisp configurable logging library"
-  :author "Parkian Company LLC"
+  :author "Park Ian Co"
   :license "Apache-2.0"
   :version "0.1.0"
   :serial t
   :components ((:file "package")
                (:module "src"
-                :serial t
-                :components ((:file "logging")))))
+                :components ((:file "package")
+                             (:file "conditions" :depends-on ("package"))
+                             (:file "types" :depends-on ("package"))
+                             (:file "cl-logging-pure" :depends-on ("package" "conditions" "types")))))))
 
 (asdf:defsystem #:cl-logging-pure/test
   :description "Tests for cl-logging-pure"

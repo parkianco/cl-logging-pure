@@ -1,39 +1,28 @@
-# Logging Pure
+# cl-logging-pure
 
-Utility library providing specialized functionality for Common Lisp applications.
+Pure Common Lisp implementation of Logging Pure
 
-## Features
+## Overview
+This library provides a robust, zero-dependency implementation of Logging Pure for the Common Lisp ecosystem. It is designed to be highly portable, performant, and easy to integrate into any SBCL/CCL/ECL environment.
 
-- Core functionality implementation
-- Pure Common Lisp (zero external dependencies)
+## Getting Started
 
-## Installation
-
-```lisp
-(asdf:load-system :cl-logging-pure)
-```
-
-## Usage
+Load the system using ASDF:
 
 ```lisp
-;; Example usage
-(main-function)
+(asdf:load-system #:cl-logging-pure)
 ```
 
-## Testing
+## Usage Example
 
 ```lisp
-(asdf:test-system :cl-logging-pure)
+;; Initialize the environment
+(let ((ctx (cl-logging-pure:initialize-logging-pure :initial-id 42)))
+  ;; Perform batch processing using the built-in standard toolkit
+  (multiple-value-bind (results errors)
+      (cl-logging-pure:logging-pure-batch-process '(1 2 3) #'identity)
+    (format t "Processed ~A items with ~A errors.~%" (length results) (length errors))))
 ```
-
-## API
-
-- `main-function - Primary function for core functionality`
 
 ## License
-
-Apache-2.0 License - See LICENSE file for details.
-
----
-Copyright (c) 2024-2026 Parkian Company LLC. All rights reserved.
-SPDX-License-Identifier: Apache-2.0
+Apache-2.0

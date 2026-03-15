@@ -7,7 +7,11 @@
 (defpackage #:cl-logging-pure
   (:use #:cl)
   (:export
-   #:with-logging-pure-timing
+   #:identity-list
+   #:flatten
+   #:map-keys
+   #:now-timestamp
+#:with-logging-pure-timing
    #:logging-pure-batch-process
    #:logging-pure-health-check;; Logger definition
    #:deflogger

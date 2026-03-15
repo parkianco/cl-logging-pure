@@ -27,22 +27,120 @@
 
 
 ;;; Substantive API Implementations
-(defun deflogger (&rest args) "Auto-generated substantive API for deflogger" (declare (ignore args)) t)
-(defstruct logger (id 0) (metadata nil))
-(defun logger (&rest args) "Auto-generated substantive API for logger" (declare (ignore args)) t)
-(defun logger-name (&rest args) "Auto-generated substantive API for logger-name" (declare (ignore args)) t)
-(defun logger-level (&rest args) "Auto-generated substantive API for logger-level" (declare (ignore args)) t)
-(defun logger-output (&rest args) "Auto-generated substantive API for logger-output" (declare (ignore args)) t)
-(defun log-message (&rest args) "Auto-generated substantive API for log-message" (declare (ignore args)) t)
-(defun log-debug (&rest args) "Auto-generated substantive API for log-debug" (declare (ignore args)) t)
-(defun log-info (&rest args) "Auto-generated substantive API for log-info" (declare (ignore args)) t)
-(defun log-warn (&rest args) "Auto-generated substantive API for log-warn" (declare (ignore args)) t)
-(define-condition log-error (cl-logging-pure-error) ())
-(defun with-logging (&rest args) "Auto-generated substantive API for with-logging" (declare (ignore args)) t)
-(defun with-log-level (&rest args) "Auto-generated substantive API for with-log-level" (declare (ignore args)) t)
-(defstruct rotating-log (id 0) (metadata nil))
-(defun rotating-log (&rest args) "Auto-generated substantive API for rotating-log" (declare (ignore args)) t)
-(defun rotate-log (&rest args) "Auto-generated substantive API for rotate-log" (declare (ignore args)) t)
+;;; These are wrappers/re-exports from the implementation modules
+
+;;; Convenience error logging
+
+(defun log-error (logger-or-name format-string &rest args)
+  "Log an error message."
+  (apply #'log-message +error+ logger-or-name format-string args))
+
+;;; Batch logging operations
+
+(defun log-batch (logger-or-name messages &key (level +info+))
+  "Log multiple messages at once."
+  (dolist (msg messages)
+    (log-message level logger-or-name msg)))
+
+(defun log-exception (logger-or-name exception &key (level +error+))
+  "Log an exception with full details."
+  (log-message level logger-or-name "Exception: ~A~%  Type: ~A"
+               (princ-to-string exception)
+               (type-of exception)))
+
+;;; Logger collection management
+
+(defvar *loggers* (make-hash-table :test #'equal)
+  "Global registry of named loggers.")
+
+(defun get-logger (name)
+  "Retrieve or create a logger by name."
+  (or (gethash name *loggers*)
+      (let ((logger (make-logger name)))
+        (setf (gethash name *loggers*) logger)
+        logger)))
+
+(defun register-logger (name logger)
+  "Register a logger in the global registry."
+  (setf (gethash name *loggers*) logger))
+
+(defun clear-loggers ()
+  "Clear all registered loggers."
+  (clrhash *loggers*))
+
+(defun list-loggers ()
+  "Return list of all registered logger names."
+  (loop for name being the hash-keys of *loggers*
+        collect name))
+
+;;; Log level configuration
+
+(defun set-global-level (level)
+  "Set the global minimum log level."
+  (setf *log-level* level))
+
+(defun get-global-level ()
+  "Get the current global minimum log level."
+  *log-level*)
+
+(defun level-enabled-p (level)
+  "Check if a log level is currently enabled."
+  (<= level *log-level*))
+
+;;; Output redirection
+
+(defun set-log-output (stream)
+  "Set the global log output stream."
+  (setf *log-output* stream))
+
+(defun log-to-file (filename &key (if-exists :append))
+  "Redirect log output to a file."
+  (let ((stream (open filename :direction :output :if-exists if-exists
+                     :if-does-not-exist :create)))
+    (set-log-output stream)
+    stream))
+
+(defun log-to-null ()
+  "Disable logging by redirecting to null stream."
+  (set-log-output (open *null-device* :direction :output)))
+
+;;; Buffered logging
+
+(defvar *log-buffer* nil
+  "Buffer for accumulated log messages.")
+
+(defvar *buffering-enabled* nil
+  "Whether log buffering is enabled.")
+
+(defmacro with-buffered-logging (&body body)
+  "Execute BODY with log message buffering enabled."
+  `(let ((*log-buffer* nil)
+         (*buffering-enabled* t))
+     (prog1
+         (progn ,@body)
+       (flush-log-buffer))))
+
+(defun flush-log-buffer ()
+  "Write all buffered log messages to output."
+  (when *log-buffer*
+    (dolist (msg (nreverse *log-buffer*))
+      (write-string msg *log-output*))
+    (setf *log-buffer* nil)
+    (force-output *log-output*)))
+
+;;; Log filtering and processing
+
+(defvar *log-filter* nil
+  "Function to filter log messages (NIL = accept all).")
+
+(defun set-log-filter (predicate)
+  "Set a filter function for log messages.
+   PREDICATE receives (level logger-name message) and returns T to log."
+  (setf *log-filter* predicate))
+
+(defun clear-log-filter ()
+  "Remove any active log filter."
+  (setf *log-filter* nil))
 
 
 ;;; ============================================================================

@@ -10,8 +10,7 @@
   :license "Apache-2.0"
   :version "0.1.0"
   :serial t
-  :components ((:file "package")
-               (:module "src"
+             (:module "src"
                 :components ((:file "package")
                              (:file "conditions" :depends-on ("package"))
                              (:file "types" :depends-on ("package"))
